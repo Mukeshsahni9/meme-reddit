@@ -15,10 +15,6 @@ A modern, responsive web application that lets you discover and share memes from
 - 🌙 Dark mode support
 - 🔒 NSFW content filtering
 
-## 🚀 Live Demo
-
-Check out the live demo: [Meme Randomizer](https://meme-randomizer.vercel.app)
-
 ## 🛠️ Tech Stack
 
 - ⚛️ React 18
@@ -59,7 +55,7 @@ Check out the live demo: [Meme Randomizer](https://meme-randomizer.vercel.app)
 ## 📱 Mobile Access
 
 - Scan the QR code shown in the terminal when running the dev server
-- Or visit the deployed version on your mobile device
+- Access the app on your mobile device through the local network
 
 ## 🔧 Configuration
 
