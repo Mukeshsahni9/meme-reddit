@@ -58,12 +58,14 @@ export default function MemeViewer() {
     setIsLoading(true);
     setIsAnimating(true);
     try {
-      const res = await fetch(`https://meme-api.com/gimme/${subreddit}`);
+      // Set default subreddit if empty
+      const subredditToFetch = subreddit.trim() || "memes";
+      const res = await fetch(`https://meme-api.com/gimme/${subredditToFetch}`);
       if (!res.ok) {
         if (res.status === 404) {
-          throw new Error(`Subreddit "r/${subreddit}" not found. Please check the name and try again.`);
+          throw new Error(`Subreddit "r/${subredditToFetch}" not found. Please check the name and try again.`);
         } else if (res.status === 403) {
-          throw new Error(`Access to "r/${subreddit}" is forbidden. This subreddit might be private or restricted.`);
+          throw new Error(`Access to "r/${subredditToFetch}" is forbidden. This subreddit might be private or restricted.`);
         } else if (res.status === 429) {
           throw new Error('Too many requests. Please wait a moment before trying again.');
         } else {
@@ -88,6 +90,12 @@ export default function MemeViewer() {
       setIsLoading(false);
       setTimeout(() => setIsAnimating(false), 300);
     }
+  };
+
+  // Add a function to handle subreddit input changes
+  const handleSubredditChange = (e) => {
+    const value = e.target.value.trim();
+    setSubreddit(value || "memes");
   };
 
   useEffect(() => {
@@ -180,7 +188,7 @@ export default function MemeViewer() {
             <input
               type="text"
               value={subreddit}
-              onChange={(e) => setSubreddit(e.target.value)}
+              onChange={handleSubredditChange}
               placeholder="Enter subreddit (e.g., memes, dankmemes)"
               className="border p-2 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all duration-200"
             />
