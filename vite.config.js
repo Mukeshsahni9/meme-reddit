@@ -24,4 +24,15 @@ export default defineConfig({
       '.ngrok-free.app'  // This will allow all ngrok-free.app subdomains
     ]
   },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        },
+      },
+    },
+  }
 });

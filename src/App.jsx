@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import fetch from 'node-fetch';
 
 export default function MemeViewer() {
   const [meme, setMeme] = useState(null);
@@ -13,15 +12,17 @@ export default function MemeViewer() {
     setIsAnimating(true);
     try {
       const res = await fetch(`https://meme-api.com/gimme/${subreddit}`);
+      if (!res.ok) throw new Error('Failed to fetch meme');
       const data = await res.json();
       // Skip if NSFW and not allowed
       if (!allowNSFW && data.nsfw) return fetchMeme();
       setMeme(data);
     } catch (error) {
       console.error("Error fetching meme:", error);
+      alert("Failed to fetch meme. Please try again.");
     } finally {
       setIsLoading(false);
-      setTimeout(() => setIsAnimating(false), 300); // Match animation duration
+      setTimeout(() => setIsAnimating(false), 300);
     }
   };
 
@@ -31,35 +32,46 @@ export default function MemeViewer() {
 
   const downloadMeme = async () => {
     try {
-      const imageResponse = await fetch(meme.url);
-      const blob = await imageResponse.blob();
-      const blobUrl = URL.createObjectURL(blob);
-  
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `${meme.title.replace(/[^a-z0-9]/gi, "_")}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
+      const response = await fetch(meme.url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${meme.title.replace(/[^a-z0-9]/gi, "_")}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
-      console.error(error);
-      alert("⚠️ Failed to download meme. This image is blocked by CORS.");
+      console.error("Error downloading meme:", error);
+      alert("Failed to download meme. Please try again.");
     }
   };
-  
 
   const shareMeme = async () => {
-    if (navigator.share) {
-      await navigator.share({
-        title: meme.title,
-        url: meme.url,
-      });
-    } else {
-      navigator.clipboard.writeText(meme.url);
-      alert("Meme link copied to clipboard!");
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: meme.title,
+          url: meme.url,
+        });
+      } else {
+        await navigator.clipboard.writeText(meme.url);
+        alert("Meme link copied to clipboard!");
+      }
+    } catch (error) {
+      console.error("Error sharing meme:", error);
+      alert("Failed to share meme. Please try again.");
     }
   };
+
+  if (!meme && isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -100,6 +112,10 @@ export default function MemeViewer() {
                   src={meme.url} 
                   alt={meme.title} 
                   className="w-full rounded-lg shadow-md transition-transform duration-300 group-hover:scale-[1.02]"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/400x300?text=Failed+to+load+meme';
+                  }}
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-lg"></div>
               </div>
