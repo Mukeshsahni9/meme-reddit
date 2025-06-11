@@ -59,14 +59,31 @@ export default function MemeViewer() {
     setIsAnimating(true);
     try {
       const res = await fetch(`https://meme-api.com/gimme/${subreddit}`);
-      if (!res.ok) throw new Error('Failed to fetch meme');
+      if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error(`Subreddit "r/${subreddit}" not found. Please check the name and try again.`);
+        } else if (res.status === 403) {
+          throw new Error(`Access to "r/${subreddit}" is forbidden. This subreddit might be private or restricted.`);
+        } else if (res.status === 429) {
+          throw new Error('Too many requests. Please wait a moment before trying again.');
+        } else {
+          throw new Error(`Failed to fetch meme (Status: ${res.status}). Please try again.`);
+        }
+      }
       const data = await res.json();
       // Skip if NSFW and not allowed
       if (!allowNSFW && data.nsfw) return fetchMeme();
       setMeme(data);
     } catch (error) {
       console.error("Error fetching meme:", error);
-      alert("Failed to fetch meme. Please try again.");
+      // Show a more user-friendly error message
+      const errorMessage = error.message || "Failed to fetch meme. Please try again.";
+      alert(errorMessage);
+      
+      // If it's a subreddit not found error, reset to default subreddit
+      if (error.message.includes("not found")) {
+        setSubreddit("memes");
+      }
     } finally {
       setIsLoading(false);
       setTimeout(() => setIsAnimating(false), 300);
@@ -83,7 +100,13 @@ export default function MemeViewer() {
       const response = await fetch(`/.netlify/functions/download?url=${encodeURIComponent(meme.url)}`);
       
       if (!response.ok) {
-        throw new Error('Failed to download meme');
+        if (response.status === 404) {
+          throw new Error('Image not found. The meme might have been removed.');
+        } else if (response.status === 403) {
+          throw new Error('Access to the image is forbidden. The image might be restricted.');
+        } else {
+          throw new Error(`Failed to download meme (Status: ${response.status}). Please try again.`);
+        }
       }
 
       // Get the blob from the response
@@ -100,7 +123,8 @@ export default function MemeViewer() {
       document.body.removeChild(a);
     } catch (error) {
       console.error("Error downloading meme:", error);
-      alert("Failed to download meme. Please try again.");
+      const errorMessage = error.message || "Failed to download meme. Please try again.";
+      alert(errorMessage);
     }
   };
 
@@ -117,7 +141,11 @@ export default function MemeViewer() {
       }
     } catch (error) {
       console.error("Error sharing meme:", error);
-      alert("Failed to share meme. Please try again.");
+      if (error.name === 'NotAllowedError') {
+        alert("Sharing was cancelled or not allowed by the browser.");
+      } else {
+        alert("Failed to share meme. Please try again.");
+      }
     }
   };
 
