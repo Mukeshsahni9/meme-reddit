@@ -1,8 +1,11 @@
 [build]
-  functions = "netlify/functions"
-  publish = "dist"  # or "build" for CRA
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
 
 [[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
+  from = "/*"
+  to = "/index.html"
   status = 200
