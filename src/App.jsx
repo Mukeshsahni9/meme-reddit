@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import fetch from 'node-fetch';
 
 export default function MemeViewer() {
   const [meme, setMeme] = useState(null);
@@ -28,21 +29,23 @@ export default function MemeViewer() {
     fetchMeme();
   }, [subreddit, allowNSFW]);
 
-  const downloadMeme = () => {
-    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  const downloadMeme = async () => {
+    try {
+      const imageResponse = await fetch(meme.url);
+      const blob = await imageResponse.blob();
+      const blobUrl = URL.createObjectURL(blob);
   
-    const link = document.createElement("a");
-    link.href = meme.url;
-    link.target = "_blank";
-  
-    if (!isMobile) {
-      // On desktop, force download
+      const link = document.createElement("a");
+      link.href = blobUrl;
       link.download = `${meme.title.replace(/[^a-z0-9]/gi, "_")}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error(error);
+      alert("⚠️ Failed to download meme. This image is blocked by CORS.");
     }
-  
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
   
 
