@@ -1,11 +1,58 @@
 import { useState, useEffect } from "react";
 
+function WelcomeGuide({ onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl transform transition-all">
+        <h2 className="text-2xl font-bold text-purple-600 mb-4">🎭 Welcome to Meme Randomizer! 🎭</h2>
+        
+        <div className="space-y-4 text-gray-700">
+          <p className="flex items-center gap-2">
+            <span className="text-2xl">🎯</span>
+            <span>Enter any subreddit name to get memes from that community!</span>
+          </p>
+          
+          <p className="flex items-center gap-2">
+            <span className="text-2xl">🎲</span>
+            <span>Popular subreddits: memes, dankmemes, wholesomememes, me_irl</span>
+          </p>
+          
+          <p className="flex items-center gap-2">
+            <span className="text-2xl">💾</span>
+            <span>Download your favorite memes with one click!</span>
+          </p>
+          
+          <p className="flex items-center gap-2">
+            <span className="text-2xl">📱</span>
+            <span>Share memes directly with friends</span>
+          </p>
+          
+          <p className="flex items-center gap-2">
+            <span className="text-2xl">⚠️</span>
+            <span>Toggle NSFW content if you're feeling adventurous</span>
+          </p>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+          >
+            Let's Go! 🚀
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MemeViewer() {
   const [meme, setMeme] = useState(null);
   const [subreddit, setSubreddit] = useState("memes");
   const [allowNSFW, setAllowNSFW] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
 
   const fetchMeme = async () => {
     setIsLoading(true);
@@ -84,7 +131,21 @@ export default function MemeViewer() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
+      {showWelcome && <WelcomeGuide onClose={() => setShowWelcome(false)} />}
+      
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
+        {/* Header with Info Button */}
+        <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-500 flex justify-between items-center">
+          <h1 className="text-white font-bold text-xl">🎭 Meme Randomizer</h1>
+          <button
+            onClick={() => setShowWelcome(true)}
+            className="text-white hover:text-gray-200 transition-colors"
+            title="Show Guide"
+          >
+            ℹ️
+          </button>
+        </div>
+
         {/* Controls */}
         <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-500">
           <div className="flex flex-col sm:flex-row gap-2 justify-center">
@@ -92,7 +153,7 @@ export default function MemeViewer() {
               type="text"
               value={subreddit}
               onChange={(e) => setSubreddit(e.target.value)}
-              placeholder="Subreddit"
+              placeholder="Enter subreddit (e.g., memes, dankmemes)"
               className="border p-2 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all duration-200"
             />
             <label className="flex items-center gap-2 text-white">
