@@ -53,6 +53,7 @@ export default function MemeViewer() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [inputValue, setInputValue] = useState("memes");
 
   const fetchMeme = async () => {
     setIsLoading(true);
@@ -85,6 +86,7 @@ export default function MemeViewer() {
       // If it's a subreddit not found error, reset to default subreddit
       if (error.message.includes("not found")) {
         setSubreddit("memes");
+        setInputValue("memes");
       }
     } finally {
       setIsLoading(false);
@@ -94,13 +96,20 @@ export default function MemeViewer() {
 
   // Add a function to handle subreddit input changes
   const handleSubredditChange = (e) => {
-    const value = e.target.value.trim();
-    setSubreddit(value || "memes");
+    setInputValue(e.target.value);
+  };
+
+  // Add a function to handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const trimmedValue = inputValue.trim() || "memes";
+    setSubreddit(trimmedValue);
+    fetchMeme();
   };
 
   useEffect(() => {
     fetchMeme();
-  }, [subreddit, allowNSFW]);
+  }, []); // Only fetch on initial load
 
   const downloadMeme = async () => {
     try {
@@ -184,10 +193,10 @@ export default function MemeViewer() {
 
         {/* Controls */}
         <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-500">
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 justify-center">
             <input
               type="text"
-              value={subreddit}
+              value={inputValue}
               onChange={handleSubredditChange}
               placeholder="Enter subreddit (e.g., memes, dankmemes)"
               className="border p-2 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all duration-200"
@@ -201,7 +210,7 @@ export default function MemeViewer() {
               />
               Allow NSFW
             </label>
-          </div>
+          </form>
         </div>
 
         {/* Meme Container */}
