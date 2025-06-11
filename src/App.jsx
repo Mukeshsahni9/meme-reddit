@@ -54,6 +54,31 @@ export default function MemeViewer() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [inputValue, setInputValue] = useState("memes");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // List of popular meme subreddits
+  const popularSubreddits = [
+    "memes",
+    "dankmemes",
+    "wholesomememes",
+    "me_irl",
+    "funny",
+    "AdviceAnimals",
+    "MemeEconomy",
+    "PrequelMemes",
+    "SequelMemes",
+    "lotrmemes",
+    "HistoryMemes",
+    "ProgrammerHumor",
+    "Animemes",
+    "GamingMemes",
+    "starterpacks"
+  ];
+
+  // Filter suggestions based on input
+  const filteredSuggestions = popularSubreddits.filter(sub => 
+    sub.toLowerCase().includes(inputValue.toLowerCase())
+  );
 
   const fetchMeme = async () => {
     setIsLoading(true);
@@ -94,10 +119,31 @@ export default function MemeViewer() {
     }
   };
 
-  // Add a function to handle subreddit input changes
   const handleSubredditChange = (e) => {
     setInputValue(e.target.value);
+    setShowSuggestions(true);
   };
+
+  const handleSuggestionClick = (suggestion) => {
+    setInputValue(suggestion);
+    setSubreddit(suggestion);
+    setShowSuggestions(false);
+    fetchMeme();
+  };
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.suggestions-container')) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Add a function to handle form submission
   const handleSubmit = (e) => {
@@ -194,13 +240,35 @@ export default function MemeViewer() {
         {/* Controls */}
         <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-500">
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 justify-center">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={handleSubredditChange}
-              placeholder="Enter subreddit (e.g., memes, dankmemes)"
-              className="border p-2 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all duration-200"
-            />
+            <div className="relative suggestions-container">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={handleSubredditChange}
+                onFocus={() => setShowSuggestions(true)}
+                placeholder="Enter subreddit (e.g., memes, dankmemes)"
+                className="border p-2 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all duration-200 w-full"
+              />
+              {showSuggestions && inputValue && (
+                <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {filteredSuggestions.length > 0 ? (
+                    filteredSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors"
+                      >
+                        r/{suggestion}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-2 text-gray-500">
+                      No matching subreddits found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <label className="flex items-center gap-2 text-white">
               <input
                 type="checkbox"
