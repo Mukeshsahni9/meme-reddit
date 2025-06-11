@@ -32,12 +32,21 @@ export default function MemeViewer() {
 
   const downloadMeme = async () => {
     try {
-      const response = await fetch(meme.url);
+      // Use the Netlify function to download the image
+      const response = await fetch(`/.netlify/functions/download?url=${encodeURIComponent(meme.url)}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to download meme');
+      }
+
+      // Get the blob from the response
       const blob = await response.blob();
+      
+      // Create a download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${meme.title.replace(/[^a-z0-9]/gi, "_")}.jpg`;
+      a.download = meme.url.split('/').pop() || 'meme.jpg';
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
